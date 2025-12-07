@@ -25,11 +25,19 @@ async function run() {
 
     const db = client.db("tuition_managerbd");
     const usersCollection = db.collection("users");
+    const tuitionsCollection = db.collection("tuitions");
 
     // user-info related apis
     app.post("/signup", async (req, res) => {
       const userData = req.body;
       const result = await usersCollection.insertOne(userData);
+      res.send(result);
+    });
+
+    // tuitions related apis
+    app.post("/create-tuition", async (req, res) => {
+      const tuition = req.body;
+      const result = await tuitionsCollection.insertOne(tuition);
       res.send(result);
     });
 
