@@ -30,6 +30,9 @@ async function run() {
     // user-info related apis
     app.post("/signup", async (req, res) => {
       const userData = req.body;
+      if (userData.role === "Tutor") {
+        userData.created_at = new Date();
+      }
       const result = await usersCollection.insertOne(userData);
       res.send(result);
     });
@@ -37,7 +40,18 @@ async function run() {
     // tuitions related apis
     app.post("/create-tuition", async (req, res) => {
       const tuition = req.body;
+      tuition.created_at = new Date();
       const result = await tuitionsCollection.insertOne(tuition);
+      res.send(result);
+    });
+
+    app.get("/tuitions", async (req, res) => {
+      const email = req.query.email;
+      const query = {};
+      if (email) {
+        query.email = email;
+      }
+      const result = await tuitionsCollection.find(query).toArray();
       res.send(result);
     });
 
