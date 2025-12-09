@@ -55,6 +55,17 @@ async function run() {
       res.send(result);
     });
 
+    // role related apis
+    app.get("/user/role", async (req, res) => {
+      const email = req.query.email;
+      const query = {};
+      if (email) {
+        query.email = email;
+      }
+      const result = await usersCollection.findOne(query);
+      res.send(result);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
