@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const port = process.env.PORT || 3000;
 // middleware
@@ -52,6 +52,14 @@ async function run() {
         query.email = email;
       }
       const result = await tuitionsCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.get("/tuition-details/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await tuitionsCollection.findOne({
+        _id: new ObjectId(id),
+      });
       res.send(result);
     });
 
