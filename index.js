@@ -74,6 +74,16 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/my-applications", async (req, res) => {
+      const email = req.query.email;
+      const query = {};
+      if (email) {
+        query.email = email;
+      }
+      const result = await tutorApllicationsCollection.find(query).toArray();
+      res.send(result);
+    });
+
     // role related apis
     app.get("/user/role", async (req, res) => {
       const email = req.query.email;
