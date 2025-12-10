@@ -26,6 +26,7 @@ async function run() {
     const db = client.db("tuition_managerbd");
     const usersCollection = db.collection("users");
     const tuitionsCollection = db.collection("tuitions");
+    const tutorApllicationsCollection = db.collection("tutor_applications");
 
     // user-info related apis
     app.post("/signup", async (req, res) => {
@@ -60,6 +61,16 @@ async function run() {
       const result = await tuitionsCollection.findOne({
         _id: new ObjectId(id),
       });
+      res.send(result);
+    });
+
+    // tutor related apis
+    app.post("/tutor-application", async (req, res) => {
+      const applicationData = req.body;
+      applicationData.status = "Pending";
+      const result = await tutorApllicationsCollection.insertOne(
+        applicationData
+      );
       res.send(result);
     });
 
