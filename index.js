@@ -19,6 +19,9 @@ const client = new MongoClient(uri, {
   },
 });
 
+// stripe-key
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+
 async function run() {
   try {
     await client.connect();
@@ -72,6 +75,36 @@ async function run() {
       }
       const result = await tutorApllicationsCollection.find(query).toArray();
       res.send(result);
+    });
+
+    // payment related apis
+    app.post("/payment-checkout-session", async (req, res) => {
+      const paymentInfo = req.body;
+      const amount = Number(paymentInfo.salary) * 100;
+
+      const session = await stripe.checkout.sessions.create({
+        line_items: [
+          {
+            price_data: {
+              currency: "BDT",
+              unit_amount: amount,
+              product_data: {
+                name: `Please, pay for your tutor ${paymentInfo.name}`,
+              },
+            },
+            quantity: 1,
+          },
+        ],
+        customer_email: paymentInfo.email,
+        mode: "payment",
+        metadata: {
+          tuitionId: paymentInfo.tuitionId,
+        },
+        success_url: `${process.env.SITE_DOMAIN}/dashboard/payment-success`,
+        cancel_url: `${process.env.SITE_DOMAIN}/dashboard/payment-cancelled`,
+      });
+
+      res.send({ url: session.url });
     });
 
     // tutor related apis
