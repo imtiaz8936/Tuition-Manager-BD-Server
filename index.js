@@ -64,6 +64,16 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/tuition-applications", async (req, res) => {
+      const email = req.query.email;
+      const query = {};
+      if (email) {
+        query.student_email = email;
+      }
+      const result = await tutorApllicationsCollection.find(query).toArray();
+      res.send(result);
+    });
+
     // tutor related apis
     app.post("/tutor-application", async (req, res) => {
       const applicationData = req.body;
