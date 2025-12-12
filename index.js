@@ -30,6 +30,7 @@ async function run() {
     const usersCollection = db.collection("users");
     const tuitionsCollection = db.collection("tuitions");
     const tutorApllicationsCollection = db.collection("tutor_applications");
+    const paymentCollection = db.collection("payments");
 
     // user-info related apis
     app.post("/signup", async (req, res) => {
@@ -89,7 +90,7 @@ async function run() {
               currency: "BDT",
               unit_amount: amount,
               product_data: {
-                name: `Please, pay for your tutor ${paymentInfo.name}`,
+                name: `Please, pay for your tutor: ${paymentInfo.name}`,
               },
             },
             quantity: 1,
@@ -99,12 +100,58 @@ async function run() {
         mode: "payment",
         metadata: {
           tuitionId: paymentInfo.tuitionId,
+          applicationId: paymentInfo.applicationId,
+          payee_name: paymentInfo.name,
         },
-        success_url: `${process.env.SITE_DOMAIN}/dashboard/payment-success`,
+        success_url: `${process.env.SITE_DOMAIN}/dashboard/payment-success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${process.env.SITE_DOMAIN}/dashboard/payment-cancelled`,
       });
 
       res.send({ url: session.url });
+    });
+
+    app.patch("/payment-success", async (req, res) => {
+      const sessionId = req.query.session_id;
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+      console.log(session);
+      if (session.payment_status === "paid") {
+        const id = session.metadata.applicationId;
+        const query = { _id: new ObjectId(id) };
+        const update = {
+          $set: {
+            status: "Approved",
+          },
+        };
+
+        const result = await tutorApllicationsCollection.updateOne(
+          query,
+          update
+        );
+
+        const payment = {
+          amount: session.amount_total / 100,
+          currency: session.currency,
+          customer_email: session.customer_email,
+          applicationId: session.metadata.applicationId,
+          tuitionId: session.metadata.tuitionId,
+          payee_name: session.metadata.payee_name,
+          transactionId: session.payment_intent,
+          paymentStatus: session.payment_status,
+          paidAt: new Date(),
+        };
+
+        if (session.payment_status === "paid") {
+          const resultPayment = await paymentCollection.insertOne(payment);
+
+          res.send({
+            success: true,
+            modifyParcel: result,
+            transactionId: session.payment_intent,
+            paymentInfo: resultPayment,
+          });
+        }
+      }
+      res.send({ success: false });
     });
 
     // tutor related apis
