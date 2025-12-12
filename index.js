@@ -42,6 +42,11 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/all-users", async (req, res) => {
+      const result = await usersCollection.find().toArray();
+      res.send(result);
+    });
+
     // tuitions related apis
     app.post("/create-tuition", async (req, res) => {
       const tuition = req.body;
