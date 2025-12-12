@@ -188,6 +188,18 @@ async function run() {
       res.send(result);
     });
 
+    app.patch("/reject-application/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const update = {
+        $set: {
+          status: "Rejected",
+        },
+      };
+      const result = await tutorApllicationsCollection.updateOne(query, update);
+      res.send(result);
+    });
+
     // role related apis
     app.get("/user/role", async (req, res) => {
       const email = req.query.email;
