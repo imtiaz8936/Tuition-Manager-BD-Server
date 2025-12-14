@@ -32,6 +32,17 @@ async function run() {
     const tutorApllicationsCollection = db.collection("tutor_applications");
     const paymentCollection = db.collection("payments");
 
+    // role related apis
+    app.get("/user/role", async (req, res) => {
+      const email = req.query.email;
+      const query = {};
+      if (email) {
+        query.email = email;
+      }
+      const result = await usersCollection.findOne(query);
+      res.send(result);
+    });
+
     // user-info related apis
     app.post("/signup", async (req, res) => {
       const userData = req.body;
@@ -44,6 +55,14 @@ async function run() {
 
     app.get("/all-users", async (req, res) => {
       const result = await usersCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.get("/user/:userId", async (req, res) => {
+      const userId = req.params.userId;
+      const result = await usersCollection.findOne({
+        _id: new ObjectId(userId),
+      });
       res.send(result);
     });
 
@@ -205,15 +224,15 @@ async function run() {
       res.send(result);
     });
 
-    // role related apis
-    app.get("/user/role", async (req, res) => {
-      const email = req.query.email;
-      const query = {};
-      if (email) {
-        query.email = email;
-      }
-      const result = await usersCollection.findOne(query);
-      res.send(result);
+    // admin related apis
+    app.patch("/update-user-information/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const update = {
+        $set: req.body,
+      };
+      const resul = await usersCollection.updateOne(query, update);
+      res.send(resul);
     });
 
     await client.db("admin").command({ ping: 1 });
