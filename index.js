@@ -249,6 +249,13 @@ async function run() {
         .toArray();
       res.send(result);
     });
+    app.get("/approved-tuitions/admin", async (req, res) => {
+      const result = await tuitionsCollection
+        .find({ status: "Approved" })
+        .sort({ created_at: -1 })
+        .toArray();
+      res.send(result);
+    });
 
     app.patch("/update-tuition-status/admin/:id", async (req, res) => {
       const id = req.params.id;
