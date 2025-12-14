@@ -242,6 +242,24 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/tuitions/admin", async (req, res) => {
+      const result = await tuitionsCollection
+        .find({ status: "Pending" })
+        .sort({ created_at: -1 })
+        .toArray();
+      res.send(result);
+    });
+
+    app.patch("/update-tuition-status/admin/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const update = {
+        $set: req.body,
+      };
+      const result = await tuitionsCollection.updateOne(query, update);
+      res.send(result);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
