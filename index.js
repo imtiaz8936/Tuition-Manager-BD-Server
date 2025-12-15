@@ -136,6 +136,7 @@ async function run() {
           tuitionId: paymentInfo.tuitionId,
           applicationId: paymentInfo.applicationId,
           payee_name: paymentInfo.name,
+          payer_email: paymentInfo.student_email,
         },
         success_url: `${process.env.SITE_DOMAIN}/dashboard/payment-success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${process.env.SITE_DOMAIN}/dashboard/payment-cancelled`,
@@ -158,7 +159,6 @@ async function run() {
         return res.send({
           message: "already exists",
           transactionId,
-          trackingId: paymentExist.trackingId,
         });
       }
 
@@ -183,6 +183,7 @@ async function run() {
           applicationId: session.metadata.applicationId,
           tuitionId: session.metadata.tuitionId,
           payee_name: session.metadata.payee_name,
+          payer_eamil: session.metadata.payer_email,
           transactionId: session.payment_intent,
           paymentStatus: session.payment_status,
           paidAt: new Date(),
@@ -200,6 +201,19 @@ async function run() {
         }
       }
       res.send({ success: false });
+    });
+
+    app.get("/payment-history", async (req, res) => {
+      const email = req.query.email;
+      const query = {};
+      if (email) {
+        query.payer_email = email;
+      }
+      const result = await paymentCollection
+        .find(query)
+        .sort({ paidAt: -1 })
+        .toArray();
+      res.send(result);
     });
 
     // tutor related apis
