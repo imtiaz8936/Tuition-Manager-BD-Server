@@ -234,6 +234,15 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/latest-tutors", async (req, res) => {
+      const result = await usersCollection
+        .find({ role: "Tutor" })
+        .sort({ created_at: -1 })
+        .limit(6)
+        .toArray();
+      res.send(result);
+    });
+
     // admin related apis
     app.patch("/update-user-information/:id", async (req, res) => {
       const id = req.params.id;
