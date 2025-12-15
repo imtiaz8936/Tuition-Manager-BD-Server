@@ -112,6 +112,51 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/total-payments/student", async (req, res) => {
+      const email = req.query.email;
+      console.log(email);
+      try {
+        const result = await paymentCollection
+          .aggregate([
+            {
+              $match: { payer_email: email },
+            },
+            {
+              $group: {
+                _id: null,
+                totalRevenue: { $sum: "$amount" },
+              },
+            },
+          ])
+          .toArray();
+
+        const totalRevenue = result[0]?.totalRevenue || 0;
+
+        res.send({ totalRevenue });
+      } catch (error) {
+        res.status(500).send({ message: "Failed to calculate revenue" });
+      }
+    });
+
+    app.get("/dashboard-stats/student", async (req, res) => {
+      const email = req.query.email;
+      const [totalApplications, approvedTutors, createdTuitions] =
+        await Promise.all([
+          tutorApllicationsCollection.countDocuments(),
+          tutorApllicationsCollection.countDocuments({
+            student_email: email,
+            status: "Approved",
+          }),
+          tuitionsCollection.countDocuments({ email: email }),
+        ]);
+
+      res.send({
+        totalApplications,
+        approvedTutors,
+        createdTuitions,
+      });
+    });
+
     // payment related apis
     app.post("/payment-checkout-session", async (req, res) => {
       const paymentInfo = req.body;
@@ -183,7 +228,7 @@ async function run() {
           applicationId: session.metadata.applicationId,
           tuitionId: session.metadata.tuitionId,
           payee_name: session.metadata.payee_name,
-          payer_eamil: session.metadata.payer_email,
+          payer_email: session.metadata.payer_email,
           transactionId: session.payment_intent,
           paymentStatus: session.payment_status,
           paidAt: new Date(),
@@ -304,7 +349,7 @@ async function run() {
         const result = await paymentCollection
           .aggregate([
             {
-              $match: { paymentStatus: "paid" }, // only successful payments
+              $match: { paymentStatus: "paid" },
             },
             {
               $group: {
