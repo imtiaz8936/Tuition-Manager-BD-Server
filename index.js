@@ -93,6 +93,16 @@ async function run() {
       res.send(result);
     });
 
+    app.patch("/update-tuition/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const update = {
+        $set: req.body,
+      };
+      const result = await tuitionsCollection.updateOne(query, update);
+      res.send(result);
+    });
+
     app.get("/tuition-applications", async (req, res) => {
       const email = req.query.email;
       const query = {};
