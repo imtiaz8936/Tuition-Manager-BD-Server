@@ -103,6 +103,15 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/latest-tuitions", async (req, res) => {
+      const result = await tuitionsCollection
+        .find()
+        .sort({ created_at: -1 })
+        .limit(6)
+        .toArray();
+      res.send(result);
+    });
+
     // payment related apis
     app.post("/payment-checkout-session", async (req, res) => {
       const paymentInfo = req.body;
