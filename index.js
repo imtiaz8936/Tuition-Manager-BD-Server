@@ -69,6 +69,7 @@ async function run() {
     // tuitions related apis
     app.post("/create-tuition", async (req, res) => {
       const tuition = req.body;
+      tuition.status = "Pending";
       tuition.created_at = new Date();
       const result = await tuitionsCollection.insertOne(tuition);
       res.send(result);
@@ -100,6 +101,14 @@ async function run() {
         $set: req.body,
       };
       const result = await tuitionsCollection.updateOne(query, update);
+      res.send(result);
+    });
+
+    app.delete("/delete-tuition/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await tuitionsCollection.deleteOne({
+        _id: new ObjectId(id),
+      });
       res.send(result);
     });
 
