@@ -285,6 +285,44 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/total-revenue/admin", async (req, res) => {
+      try {
+        const result = await paymentCollection
+          .aggregate([
+            {
+              $match: { paymentStatus: "paid" }, // only successful payments
+            },
+            {
+              $group: {
+                _id: null,
+                totalRevenue: { $sum: "$amount" },
+              },
+            },
+          ])
+          .toArray();
+
+        const totalRevenue = result[0]?.totalRevenue || 0;
+
+        res.send({ totalRevenue });
+      } catch (error) {
+        res.status(500).send({ message: "Failed to calculate revenue" });
+      }
+    });
+
+    app.get("/dashboard-stats/admin", async (req, res) => {
+      const [totalUsers, totalTutors, totalTuitions] = await Promise.all([
+        usersCollection.countDocuments(),
+        usersCollection.countDocuments({ role: "Tutor" }),
+        tuitionsCollection.countDocuments({ status: "Approved" }),
+      ]);
+
+      res.send({
+        totalUsers,
+        totalTutors,
+        totalTuitions,
+      });
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
