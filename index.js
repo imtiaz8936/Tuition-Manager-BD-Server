@@ -76,13 +76,35 @@ async function run() {
     });
 
     app.get("/tuitions", async (req, res) => {
-      const email = req.query.email;
-      const query = {};
+      const { email, subject, location, sort } = req.query;
+
+      let query = {
+        status: "Approved",
+      };
+
       if (email) {
         query.email = email;
       }
-      query.status = "Approved";
-      const result = await tuitionsCollection.find(query).toArray();
+
+      if (subject) {
+        query.subject = { $regex: subject, $options: "i" };
+      }
+
+      if (location) {
+        query.location = { $regex: location, $options: "i" };
+      }
+
+      let sortOption = {};
+      if (sort === "budget_asc") sortOption.budget = 1;
+      if (sort === "budget_desc") sortOption.budget = -1;
+      if (sort === "date_new") sortOption.created_at = -1;
+      if (sort === "date_old") sortOption.created_at = 1;
+
+      const result = await tuitionsCollection
+        .find(query)
+        .sort(sortOption)
+        .toArray();
+
       res.send(result);
     });
 
@@ -389,17 +411,60 @@ async function run() {
     });
 
     app.get("/tuitions/admin", async (req, res) => {
+      const { subject, location, sort } = req.query;
+
+      let query = {
+        status: "Pending",
+      };
+
+      if (subject) {
+        query.subject = { $regex: subject, $options: "i" };
+      }
+
+      if (location) {
+        query.location = { $regex: location, $options: "i" };
+      }
+
+      let sortOption = {};
+      if (sort === "budget_asc") sortOption.budget = 1;
+      if (sort === "budget_desc") sortOption.budget = -1;
+      if (sort === "date_new") sortOption.created_at = -1;
+      if (sort === "date_old") sortOption.created_at = 1;
+
       const result = await tuitionsCollection
-        .find({ status: "Pending" })
-        .sort({ created_at: -1 })
+        .find(query)
+        .sort(sortOption)
         .toArray();
+
       res.send(result);
     });
+
     app.get("/approved-tuitions/admin", async (req, res) => {
+      const { subject, location, sort } = req.query;
+
+      let query = {
+        status: "Approved",
+      };
+
+      if (subject) {
+        query.subject = { $regex: subject, $options: "i" };
+      }
+
+      if (location) {
+        query.location = { $regex: location, $options: "i" };
+      }
+
+      let sortOption = {};
+      if (sort === "budget_asc") sortOption.budget = 1;
+      if (sort === "budget_desc") sortOption.budget = -1;
+      if (sort === "date_new") sortOption.created_at = -1;
+      if (sort === "date_old") sortOption.created_at = 1;
+
       const result = await tuitionsCollection
-        .find({ status: "Approved" })
-        .sort({ created_at: -1 })
+        .find(query)
+        .sort(sortOption)
         .toArray();
+
       res.send(result);
     });
 
