@@ -161,7 +161,7 @@ async function run() {
       const email = req.query.email;
       const [totalApplications, approvedTutors, createdTuitions] =
         await Promise.all([
-          tutorApllicationsCollection.countDocuments(),
+          tutorApllicationsCollection.countDocuments({ student_email: email }),
           tutorApllicationsCollection.countDocuments({
             student_email: email,
             status: "Approved",
@@ -269,9 +269,14 @@ async function run() {
 
     app.get("/payment-history", async (req, res) => {
       const email = req.query.email;
+      const role = req.query.role;
       const query = {};
       if (email) {
-        query.payer_email = email;
+        if (role === "Student") {
+          query.payer_email = email;
+        } else {
+          query.customer_email = email;
+        }
       }
       const result = await paymentCollection
         .find(query)
@@ -319,6 +324,51 @@ async function run() {
         .limit(6)
         .toArray();
       res.send(result);
+    });
+
+    app.get("/total-earnings/tutor", async (req, res) => {
+      const email = req.query.email;
+      console.log(email);
+      try {
+        const result = await paymentCollection
+          .aggregate([
+            {
+              $match: { customer_email: email },
+            },
+            {
+              $group: {
+                _id: null,
+                totalRevenue: { $sum: "$amount" },
+              },
+            },
+          ])
+          .toArray();
+
+        const totalRevenue = result[0]?.totalRevenue || 0;
+
+        res.send({ totalRevenue });
+      } catch (error) {
+        res.status(500).send({ message: "Failed to calculate revenue" });
+      }
+    });
+
+    app.get("/dashboard-stats/tutor", async (req, res) => {
+      const email = req.query.email;
+      const [totalApplications, approvedTuitions, availableTuitions] =
+        await Promise.all([
+          tutorApllicationsCollection.countDocuments({ email: email }),
+          tutorApllicationsCollection.countDocuments({
+            email: email,
+            status: "Approved",
+          }),
+          tuitionsCollection.countDocuments({ status: "Approved" }),
+        ]);
+
+      res.send({
+        totalApplications,
+        approvedTuitions,
+        availableTuitions,
+      });
     });
 
     // admin related apis
