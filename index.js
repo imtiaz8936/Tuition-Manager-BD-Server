@@ -76,7 +76,7 @@ async function run() {
     });
 
     app.get("/tuitions", async (req, res) => {
-      const { email, subject, location, sort } = req.query;
+      const { email, subject, location, sort, page, limit } = req.query;
 
       let query = {
         status: "Approved",
@@ -100,12 +100,27 @@ async function run() {
       if (sort === "date_new") sortOption.created_at = -1;
       if (sort === "date_old") sortOption.created_at = 1;
 
+      // 📄 Pagination
+      const pageNumber = parseInt(page);
+      const pageLimit = parseInt(limit);
+      const skip = (pageNumber - 1) * pageLimit;
+
       const result = await tuitionsCollection
         .find(query)
         .sort(sortOption)
+        .skip(skip)
+        .limit(pageLimit)
         .toArray();
 
-      res.send(result);
+      // Total count
+      const total = await tuitionsCollection.countDocuments(query);
+
+      res.send({
+        data: result,
+        total,
+        page: pageNumber,
+        totalPages: Math.ceil(total / pageLimit),
+      });
     });
 
     app.get("/tuition-details/:id", async (req, res) => {
@@ -411,7 +426,7 @@ async function run() {
     });
 
     app.get("/tuitions/admin", async (req, res) => {
-      const { subject, location, sort } = req.query;
+      const { subject, location, sort, page, limit } = req.query;
 
       let query = {
         status: "Pending",
@@ -431,16 +446,31 @@ async function run() {
       if (sort === "date_new") sortOption.created_at = -1;
       if (sort === "date_old") sortOption.created_at = 1;
 
+      // 📄 Pagination
+      const pageNumber = parseInt(page);
+      const pageLimit = parseInt(limit);
+      const skip = (pageNumber - 1) * pageLimit;
+
       const result = await tuitionsCollection
         .find(query)
         .sort(sortOption)
+        .skip(skip)
+        .limit(pageLimit)
         .toArray();
 
-      res.send(result);
+      // Total count
+      const total = await tuitionsCollection.countDocuments(query);
+
+      res.send({
+        data: result,
+        total,
+        page: pageNumber,
+        totalPages: Math.ceil(total / pageLimit),
+      });
     });
 
     app.get("/approved-tuitions/admin", async (req, res) => {
-      const { subject, location, sort } = req.query;
+      const { subject, location, sort, page, limit } = req.query;
 
       let query = {
         status: "Approved",
@@ -460,12 +490,27 @@ async function run() {
       if (sort === "date_new") sortOption.created_at = -1;
       if (sort === "date_old") sortOption.created_at = 1;
 
+      // 📄 Pagination
+      const pageNumber = parseInt(page);
+      const pageLimit = parseInt(limit);
+      const skip = (pageNumber - 1) * pageLimit;
+
       const result = await tuitionsCollection
         .find(query)
         .sort(sortOption)
+        .skip(skip)
+        .limit(pageLimit)
         .toArray();
 
-      res.send(result);
+      // Total count
+      const total = await tuitionsCollection.countDocuments(query);
+
+      res.send({
+        data: result,
+        total,
+        page: pageNumber,
+        totalPages: Math.ceil(total / pageLimit),
+      });
     });
 
     app.patch("/update-tuition-status/admin/:id", async (req, res) => {
