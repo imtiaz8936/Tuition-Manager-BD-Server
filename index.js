@@ -47,7 +47,7 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
 
     const db = client.db("tuition_managerbd");
     const usersCollection = db.collection("users");
@@ -663,7 +663,7 @@ async function run() {
       }
     );
 
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
@@ -672,7 +672,7 @@ async function run() {
 }
 run().catch(console.dir);
 
-app.get("/server", (req, res) => {
+app.get("/", (req, res) => {
   res.send("tuition-manager-bd-server is runninggg gooood");
 });
 
